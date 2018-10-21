@@ -16,27 +16,41 @@
     <!-- MetisMenu CSS -->
     <link th:href="@{/vendor/metisMenu/metisMenu.min.css}" rel="stylesheet">
 
+    <!-- datatables -->
+    <link th:href="@{/vendor/datatables/css/jquery.dataTables.min.css}" rel="stylesheet">
+
+    <!--&lt;!&ndash; DataTables CSS &ndash;&gt;-->
+    <!--<link th:href="@{/vendor/datatables-plugins/dataTables.bootstrap.css}" rel="stylesheet">-->
+
+    <!--&lt;!&ndash; DataTables Responsive CSS &ndash;&gt;-->
+    <!--<link th:href="@{/vendor/datatables-responsive/dataTables.responsive.css}" rel="stylesheet">-->
+
+
+    <!-- jQuery UI CSS -->
+    <link th:href="@{/jQuery-1.12.1.custom/jquery-ui.min.css}" rel="stylesheet">
+    <link th:href="@{/jQuery-1.12.1.custom/jquery-ui.structure.min.css}" rel="stylesheet">
+
     <!-- Custom CSS -->
     <link th:href="@{/dist/css/sb-admin-2.css}" rel="stylesheet">
 
     <!-- Morris Charts CSS -->
     <link th:href="@{/vendor/morrisjs/morris.css}" rel="stylesheet">
 
-    <!-- Custom Fonts -->
     <link th:href="@{/vendor/font-awesome/css/font-awesome.min.css}" rel="stylesheet" type="text/css">
 
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-        <!--<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>-->
-    <!--<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>-->
-    <![endif]-->
+    <link th:href="@{/vendor/bootstrap/css/bootstrap-switch.min.css}" rel="stylesheet"/>
+
+
+    <!-- Custom Fonts -->
+    <link th:href="@{/power-0.1.css}" rel="stylesheet">
+
 
 </head>
 
-<body>
+<body id="mybody">
 
 <div id="wrapper">
+
     <!-- Navigation -->
     <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
         <div class="navbar-header">
@@ -153,24 +167,279 @@
         <!-- /.navbar-static-side -->
     </nav>
 
-
     <div id="page-wrapper">
-        <ul>
-            <!--/*@thymesVar id="users" type="List<XUser>"*/-->
-            <li  th:each="user:${users}">
-                <span th:text="${user.id}"></span>
-                <span th:text="${user.userName}"></span>
-            </li>
-        </ul>
+        <div class="alert alert-warning " hidden id="mainAlertDialog">
+            <a href="#" class="close" onclick="mainHideAlert()">
+                &times;
+            </a>
+            <div><strong id="mainAlertTitle">警告！</strong><Span id="mainAlertMsg">++这里显示消息++</Span></div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <h3 class="page-header">用户管理</h3>
+            </div>
+            <!-- /.col-lg-12 -->
+        </div>
+        <div class="panel-body">
+            <div class="full-width" style="margin-bottom: 5rem">
+                <div class="col-lg-12">
+                    <input type="button" id="addUser" class="btn btn-primary" onclick="OnAddUserClick()"
+                           value="添加">
+                    <input type="button" id="editUser" class="btn btn-primary m-l" value="编辑" onclick="OnEditUserClick()">
+                    <input type="button" id="delUser" class="btn btn-primary m-l" value="删除" onclick="OnDelUserClick()">
+                    <input type="button" id="importUsers" class="btn btn-primary m-l" value="导入...">
+                    <input type="button" id="exportUsers" class="btn btn-primary m-l" value="导出...">
+                </div>
+            </div>
+
+            <div class="full-width" style="margin-bottom: 5rem">
+                <div class="col-lg-3 m-b" style="padding-left: 0px">
+
+                    <div class="form-horizontal">
+                        <div class="col-sm-3 text-right">
+                            <label for="selPageSize" class="control-label">显示</label>
+                        </div>
+
+                        <div class="col-sm-5" style="padding-left: 0px;">
+                            <select id="selPageSize" class="form-control">
+                                <option th:each="pageSize:${pageSizeList}"
+                                        th:value="${pageSizeStat.index}"
+                                        th:text="${pageSize}"
+                                        th:selected="${pageSize eq page.pageSize} ? true : false">
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="float-right-10">
+                    <div class="input-group full-width ">
+
+                        <input type="text" id="jumpPageNum2" name="jumpPageNum2" th:value="${page.currentPage}" class="form-control">
+                        <span class="input-group-btn">
+						        <button class="btn btn-default" id="jumpPage2" name="jumpPage2"
+                                        th:href="@{${page.url}(code=${likeUser.code},userName=${likeUser.userName},password=${likeUser.password},telNo=${likeUser.telNo},remark=${likeUser.remark},pageSize=${page.pageSize})}"
+
+                                        type="button">确定</button>
+					        </span>
+                    </div><!-- /input-group -->
+                </div><!-- /.col-lg-3 -->
+                <h5 class="control-label float-right-20 text-right"
+                    th:text="'共'+ ${page.totalPages} + '页,' + ${page.totalRecords} + '条记录'"></h5>
+            </div>
+            <table width="100%" class="table table-striped table-hover table-bordered" id="dataTables-example">
+                <thead>
+                <tr>
+                    <th style="width:3%">
+                        <input type="checkbox" id="colSelectAll" onclick="SelectAllRow(this)">
+                    </th>
+                    <th style="width:12%">
+                        <div class="col-lg-9">编码</div>
+                        <div id="colUid" class="fa fa-fw  fa-sort  col-lg-3 text-center" onclick="Sort(this)"></div>
+                    </th>
+
+                    <th style="width:12%" class="">
+                        <div class="col-lg-8">用户名</div>
+                        <div id="colUserName" class="fa fa-fw  fa-sort col-lg-4 text-center" onclick="Sort(this)"></div>
+                    </th>
+
+                    <th style="width:12%" class="">
+                        <div class="col-lg-8">密码</div>
+                        <div id="colPassword" class="fa fa-fw  fa-sort col-lg-4 text-center" onclick="Sort(this)"></div>
+                    </th>
+
+                    <th style="width:12%" class="text-center">手机号</th>
+                    <th style="width:13%" class="text-center">备注</th>
+                    <th style="width:10%" class="text-center">状态</th>
+                    <th style="width:13%" class="text-center">创建时间</th>
+                    <th style="width:13%" class="text-center">修改时间</th>
+
+                </tr>
+                <tr class="odd gradeX" id="srchTr">
+                    <!--/*@thymesVar id="users" type="List<XUser>"*/-->
+
+                    <td></td>
+                    <td>
+                        <input id="srchUserCode" th:value="${likeUser.getCode()}" type="text" placeholder=""
+                               class="form-control">
+                    </td>
+                    <td>
+                        <input id="srchUserName" th:value="${likeUser.getUserName()}" type="text" placeholder=""
+                               class="form-control">
+                    </td>
+                    <td>
+                        <input id="srchPassword" th:value="${likeUser.getPassword()}" type="text" placeholder=""
+                               class="form-control">
+                    </td>
+                    <td>
+                        <input id="srchTelNo" th:value="${likeUser.getTelNo()}" type="text" placeholder=""
+                               class="form-control">
+                    </td>
+                    <td>
+                        <input id="srchRemark" th:value="${likeUser.getRemark()}" type="text" placeholder=""
+                               class="form-control">
+                    </td>
+                    <td>
+                        <select id="srchStatus" class="form-control">
+                            <option value="" >全部</option>
+                            <option value="1" th:selected="${likeUser.getStatus() == 1}?true:false">ON</option>
+                            <option value="0" th:selected="${likeUser.getStatus() == 0}?true:false">OFF</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input id="srchCreateTime" th:value="${likeUser.getStrCreateTime()}" type="text" placeholder=""
+                               class="form-control">
+                    </td>
+                    <td>
+                        <input id="srchModifyTime" th:value="${likeUser.getStrModifyTime()}" type="text" placeholder=""
+                               class="form-control">
+                    </td>
+                </tr>
+                </thead>
+
+
+                <div id="dataDiv">
+                    <tbody>
+                    <li class="list-unstyled">
+                        <tr class="odd gradeX" name="rowData" th:each="user:${users}">
+                            <td>
+                                <input type="checkbox" name="colSingleSelect">
+                            </td>
+                            <td name="code" th:text="${user.getCode()}"></td>
+                            <td name="userName" th:text="${user.getUserName()}"></td>
+                            <td name="password" th:text="${user.getPassword()}"></td>
+                            <td name="telNo" th:text="${user.getTelNo()}"></td>
+                            <td name="remark" th:text="${user.getRemark()}"></td>
+                            <td>
+                                <div class="bootstrap-switch bootstrap-switch-mini">
+                                    <input type="checkbox" name="switchCheckbox" th:checked="${user.getStatus()}==1?true:false"/>
+                                </div>
+                            </td>
+                            <td name="createTime" th:text="${user.getStrCreateTime()}"></td>
+                            <td name="modifyTime" th:text="${user.getStrModifyTime()}"></td>
+                        </tr>
+                    </li>
+                    </tbody>
+                </div>
+
+            </table>
+            <div>
+                <ul class="pagination">
+                    <!-- 上一页 -->
+                    <li th:class="${page.currentPage==1} ? 'disabled' : ''">
+                        <a th:href="@{${page.url}(code=${likeUser.code},userName=${likeUser.userName},password=${likeUser.password},telNo=${likeUser.telNo},remark=${likeUser.remark},strCreateTime=${likeUser.strCreateTime},strModifyTime=${likeUser.strModifyTime},currentPage=${page.currentPage-1},pageSize=page.pageSize)}">上一页</a>
+                    </li>
+
+                    <!-- 迭代生成页码 -->
+                    <li class="page-item" data-th-each="i : ${#numbers.sequence(page.fromPage, page.toPage)}"
+                        data-th-classappend="${page.currentPage eq i} ? 'active' : ''">
+                        <a th:href="@{${page.url}(code=${likeUser.code},userName=${likeUser.userName},password=${likeUser.password},telNo=${likeUser.telNo},remark=${likeUser.remark},strCreateTime=${likeUser.strCreateTime},strModifyTime=${likeUser.strModifyTime},currentPage=${i},pageSize=${page.pageSize})}">
+                            <span th:text='${i}'>1</span>
+                        </a>
+                    </li>
+
+                    <!-- 下一页 -->
+                    <li th:class="${page.currentPage==page.totalPages}?'disabled' : ''">
+                        <a th:href="@{${page.url}(code=${likeUser.code},userName=${likeUser.userName},password=${likeUser.password},telNo=${likeUser.telNo},remark=${likeUser.remark},strCreateTime=${likeUser.strCreateTime},strModifyTime=${likeUser.strModifyTime},currentPage=${page.currentPage+1},pageSize=${page.pageSize})}">下一页</a>
+                    </li>
+
+                    <div class="float-right-10">
+                        <div class="input-group full-width ">
+
+                            <input type="text" id="jumpPageNum1" name="jumpPageNum1" th:value="${page.currentPage}" class="form-control">
+                            <span class="input-group-btn">
+						        <button class="btn btn-default" id="jumpPage1" name="jumpPage1"
+                                        th:href="@{${page.url}(code=${likeUser.code},userName=${likeUser.userName},password=${likeUser.password},telNo=${likeUser.telNo},remark=${likeUser.remark},strCreateTime=${likeUser.strCreateTime},strModifyTime=${likeUser.strModifyTime},pageSize=${page.pageSize})}"
+                                        type="button">确定</button>
+					        </span>
+                        </div><!-- /input-group -->
+                    </div><!-- /.col-lg-3 -->
+                    <h5 class="control-label float-right-20 text-right"
+                        th:text="'共'+ ${page.totalPages} + '页,' + ${page.totalRecords} + '条记录'"></h5>
+
+                </ul>
+
+            </div>
+
+        </div>
+
     </div>
 </div>
-<!-- /#wrapper -->
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div id="modalDialog" class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="alert alert-warning " hidden id="alertDialog">
+                    <a href="#" class="close" onclick="hideAlert()">
+                        &times;
+                    </a>
+                    <div><strong id="alertTitle">警告！</strong><Span id="alertMsg">++这里显示消息++</Span></div>
+                </div>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">添加用户</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal">
+                    <div class="form-group">
+                        <label for="code" class="col-sm-2 control-label">用户编码</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="code" placeholder="用户编码">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="userName" class="col-sm-2 control-label">用户名</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="userName" placeholder="用户名">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="password" class="col-sm-2 control-label">密码</label>
+                        <div class="col-sm-10">
+                            <input type="password" class="form-control" id="password" placeholder="密码">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="telNo" class="col-sm-2 control-label">电话号码</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="telNo" placeholder="电话号码">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="remark" class="col-sm-2 control-label">备注</label>
+                        <div class="col-sm-10">
+                            <textarea class="form-control" rows="3" id="remark" placeholder="备注"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="status" class="col-sm-2 control-label">状态</label>
+                        <div class="col-sm-10">
+                            <select id="status" class="form-control">
+                                <option value="1">ON</option>
+                                <option value="0">OFF</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-warning" onclick="UserDialogSubmit()">提交</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- jQuery -->
 <script th:src="@{/vendor/jquery/jquery.min.js}"></script>
+<script th:src="@{/jQuery-1.12.1.custom/jquery-ui.min.js}"></script>
 
 <!-- Bootstrap Core JavaScript -->
 <script th:src="@{/vendor/bootstrap/js/bootstrap.min.js}"></script>
+
 
 <!-- Metis Menu Plugin JavaScript -->
 <script th:src="@{/vendor/metisMenu/metisMenu.min.js}"></script>
@@ -180,9 +449,61 @@
 <script th:src="@{/vendor/morrisjs/morris.min.js}"></script>
 <!--<script src="../data/morris-data.js"></script>-->
 
+<!-- DataTables JavaScript -->
+<script th:src="@{/vendor/datatables/js/jquery.dataTables.min.js}"></script>
+
+<!--switch box -->
+<script th:src="@{/vendor/bootstrap/js/bootstrap-switch.min.js}"></script>
+<!--<script th:src="@{/vendor/datatables-plugins/dataTables.bootstrap.min.js}"></script>-->
+<!--<script th:src="@{/vendor/datatables-responsive/dataTables.responsive.js}"></script>-->
+
+
 <!-- Custom Theme JavaScript -->
 <script th:src="@{/dist/js/sb-admin-2.js}"></script>
+<script th:src="@{/js/utils.js}"></script>
+<script th:src="@{/js/userManager.js}"></script>
 
+<script>
+    var table;
+
+
+
+    $(document).ready(function () {
+        $(".modal-dialog").draggable({
+            handle: ".modal-header"
+        });
+
+        table = $('#dataTables-example').DataTable({
+            // searching: false,
+            // paging:false,
+            // ordering:false,
+            "bPaginate": false,
+            "bFilter": false,
+            "bSort": false,
+            "bInfo": false
+        });
+
+
+        $("[name='switchCheckbox']").bootstrapSwitch({
+            onSwitchChange: changeStatus
+        });
+
+        $("[name='switchCheckbox']").each(function () {
+            if ($(this).bootstrapSwitch('state')) {
+                $(this).bootstrapSwitch('state', true);
+            }
+        });
+
+        $('#selPageSize').bind('change', PageSizeChange);
+        $('#dataTables-example thead tr').find('input').bind('keydown', searchUser);
+        $('#dataTables-example tbody tr').find("input[name='colSingleSelect']").bind('click',selectTableCheckbox);
+        $('#dataTables-example tbody tr').bind('click', selectTableRow);
+        //$('#dataTables-example tbody tr').find("input[name='switchCheckBox']").bind('click',changeStatus);
+        $('#jumpPage1').bind('click', jumpPage1);
+        $('#jumpPage2').bind('click', jumpPage2);
+
+    });
+</script>
 </body>
 
 </html>

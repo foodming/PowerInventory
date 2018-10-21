@@ -6,7 +6,7 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-    <title>INSPINIA | Login</title>
+    <title>PowerInventory | Login</title>
     <link th:href="@{/bootstrap-4.0.0-alpha.6-dist/css/bootstrap.min.css}" rel="stylesheet"/>
     <link th:href="@{/power-0.1.css}" rel="stylesheet"/>
     <!--<link th:href="@{/animate.css}" rel="stylesheet" />-->
@@ -26,14 +26,22 @@
             等于高效管理
         </p>
 
-        <form class="mt-1" role="form" action="login" method="post">
+        <form class="mt-1" role="form" th:action="@{/login}" th:method="post">
             <div class="form-group">
-                <input type="text" class="form-control" placeholder="userName" name="userName"/>
+                <input id="userName" type="text" class="form-control" placeholder="用户名" name="username" autofocus/>
             </div>
             <div class="form-group">
-                <input type="password" class="form-control" placeholder="password" name="password" required=""/>
+                <input id="password" type="password" class="form-control" placeholder="密码" name="password" required="required"/>
             </div>
-            <button type="submit" class="btn btn-primary block full-width m-b">Login</button>
+            <!--<button type = "submit" class="btn btn-primary block full-width m-b" >Login</button>-->
+            <button type = "button" id="login" class="btn btn-primary block full-width m-b" onclick="Login()">登录</button>
+            <div class="form-group">
+                <input class="alert full-width text-center" id="loginResult" type="text" readonly/>
+            </div>
+            <!--<div class="form-group" th:switch="${result}" th:if="${result} ne null">-->
+                <!--<label th:case="0"   th:text="登录成功"/>-->
+                <!--<label class="alert alert-danger" th:case="1"   th:text="用户名或密码错误"/>-->
+            <!--</div>-->
         </form>
         <p class="mt-3">
             <small>power inventory &copy; 2018</small>
@@ -42,10 +50,20 @@
 </div>
 
 <!-- Mainly scripts -->
+<script th:src="@{/vendor/jquery/jquery.min.js}"></script>
 <script th:src="@{/bootstrap-4.0.0-alpha.6-dist/js/bootstrap.min.js}"></script>
+<script th:src="@{/js/utils.js}"></script>
+<script th:src="@{/js/login.js}"></script>
 
 <script th:inline="javascript">
 
+    $(document).ready(function () {
+       $('#password').bind('keydown', function (event) {
+           if(event.keyCode == 13){
+               Login();
+           }
+       });
+    });
 
 </script>
 </body>

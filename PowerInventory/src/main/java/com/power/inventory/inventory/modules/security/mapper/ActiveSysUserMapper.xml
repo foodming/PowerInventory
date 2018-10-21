@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.power.inventory.inventory.modules.security.dao.ActiveSysUserDao">
+
+  <resultMap id="PermissionResultMap" type="com.power.inventory.inventory.modules.security.model.SysPermission">
+    <id column="p_id" jdbcType="BIGINT" property="id" />
+    <result column="p_name" jdbcType="VARCHAR" property="name" />
+    <result column="p_description" jdbcType="VARCHAR" property="description" />
+    <result column="p_url" jdbcType="VARCHAR" property="url" />
+    <result column="p_pid" jdbcType="BIGINT" property="pid" />
+  </resultMap>
+
+  <resultMap id="roleResultMap" type="com.power.inventory.inventory.modules.security.model.SysRole">
+    <result property="id" jdbcType="BIGINT" column="r_id"/>
+    <result property="name" jdbcType="VARCHAR" column="r_name" />
+    <collection property="permissions" resultMap="PermissionResultMap"></collection>
+  </resultMap>
+
+  <resultMap id="userResultMap" type="com.power.inventory.inventory.modules.security.model.SysUser">
+    <id property="id" jdbcType="BIGINT" column="u_id"/>
+    <result property="userName" jdbcType="VARCHAR" column="u_userName"/>
+    <result property="password" jdbcType="VARCHAR" column="u_password"/>
+    <collection property="roles" resultMap="roleResultMap"></collection>
+  </resultMap>
+
+  <select id="findUserByUserName" parameterType="String" resultMap="userResultMap">
+      select
+        u.id u_id,
+        u.userName u_userName,
+        u.password u_password,
+        r.id r_id,
+        r.name r_name,
+        p.id p_id,
+        p.name p_name,
+        p.description p_description,
+        p.url p_url,
+        p.pid p_pid
+        from SYS_USER u
+        LEFT JOIN SYS_ROLE_USER sru on u.id= sru.Sys_User_id
+        LEFT JOIN SYS_ROLE r on sru.Sys_Role_id=r.id
+        LEFT JOIN SYS_PERMISSION_ROLE spr on spr.role_id=r.id
+        LEFT JOIN SYS_PERMISSION p on p.id =spr.permission_id
+        where u.userName=#{userName}
+ </select>
+
+
+  <select id="findPermissionByUserId" parameterType="int" resultMap="PermissionResultMap">
+      select p.*
+        from SYS_USER u
+        LEFT JOIN SYS_ROLE_USER sru on u.id= sru.Sys_User_id
+        LEFT JOIN SYS_ROLE r on sru.Sys_Role_id=r.id
+        LEFT JOIN SYS_PERMISSION_ROLE spr on spr.role_id=r.id
+        LEFT JOIN SYS_PERMISSION p on p.id =spr.permission_id
+        where u.id=#{userId}
+ </select>
+
+  <select id="findPermissionByUserName" parameterType="String" resultMap="PermissionResultMap">
+      select p.*
+        from SYS_USER u
+        LEFT JOIN SYS_ROLE_USER sru on u.id= sru.Sys_User_id
+        LEFT JOIN SYS_ROLE r on sru.Sys_Role_id=r.id
+        LEFT JOIN SYS_PERMISSION_ROLE spr on spr.role_id=r.id
+        LEFT JOIN SYS_PERMISSION p on p.id =spr.permission_id
+        where u.userName=#{userName}
+ </select>
+
+  <select id="findPermissionByRoleId" parameterType="int" resultMap="PermissionResultMap">
+      select p.*
+        from SYS_ROLE_USER sru
+        LEFT JOIN SYS_PERMISSION_ROLE spr on spr.role_id=sru.sys_role_id
+        LEFT JOIN SYS_PERMISSION p on p.id =spr.permission_id
+        where sru.id=#{roleId}
+ </select>
+</mapper>

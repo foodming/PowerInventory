@@ -1,16 +1,29 @@
 package com.power.inventory.inventory.modules.user.service;
 
+import com.power.inventory.inventory.common.constant.SortEnum;
 import com.power.inventory.inventory.modules.user.model.User;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-/**
- * Created by Administrator on 2017/8/16.
- */
+
 public interface UserService {
 
+    //@Transactional
     int addUser(User user);
 
-    List<User> findAllUser(int pageNum, int pageSize);
+    void delUser(long id);
+
+//    List<User> findAllUser(int pageNum, int pageSize);
     List<User> findAllUser();
+
+    Long getTotalCounts(User likeUser);
+
+    List<User> findUser(Long currentPage, Long pageSize, User likeUser, String sortColumnName, SortEnum sortType);
+
+    int editUser(User record);
+
+    int deleteUser(List<String> codeList);
+
+    int updateUserStatus(String code, int status);
 }

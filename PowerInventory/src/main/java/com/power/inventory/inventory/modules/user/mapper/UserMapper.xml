@@ -1,78 +1,161 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.power.inventory.inventory.modules.user.dao.UserMapper">
-  <resultMap id="BaseResultMap" type="com.power.inventory.inventory.modules.user.model.User">
-    <id column="id" jdbcType="BIGINT" property="id" />
-    <result column="username" jdbcType="VARCHAR" property="username" />
-    <result column="password" jdbcType="VARCHAR" property="password" />
-  </resultMap>
-  <sql id="Base_Column_List">
-    id, username, password
+    <resultMap id="BaseResultMap" type="com.power.inventory.inventory.modules.user.model.User">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="code" jdbcType="VARCHAR" property="code"/>
+        <result column="userName" jdbcType="VARCHAR" property="userName"/>
+        <result column="password" jdbcType="VARCHAR" property="password"/>
+        <result column="telNo" jdbcType="VARCHAR" property="telNo"/>
+        <result column="remark" jdbcType="VARCHAR" property="remark"/>
+        <result column="status" jdbcType="TINYINT" property="status"/>
+        <result column="createTime" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="modifyTime" jdbcType="TIMESTAMP" property="modifyTime"/>
+        <result column="strCreateTime" jdbcType="TIMESTAMP" property="strCreateTime"/>
+        <result column="strModifyTime" jdbcType="TIMESTAMP" property="strModifyTime"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+    id, code, userName, password, telNo, remark, status,createTime,modifyTime
   </sql>
 
-  <select id="findAll"  resultMap="BaseResultMap">
+    <select id="findAll" resultMap="BaseResultMap">
     select
-    *
+    id, code, userName, password, telNo, remark, status,createTime,modifyTime,
+    date_format(createTime, '%Y-%m-%d %H:%i:%s') strCreateTime,
+    date_format(modifyTime, '%Y-%m-%d %H:%i:%s') strModifyTime
     from SYS_USER
   </select>
 
-  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
-    select
-    <include refid="Base_Column_List" />
-    from SYS_USER
-    where id = #{id,jdbcType=BIGINT}
-  </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    <select id="getTotalCounts" resultType="java.lang.Long">
+        select
+        COUNT(*)
+        from SYS_USER
+        <where>
+            <if test="likeUser.code!=null and likeUser.code != ''">
+                and code like concat(concat('%',#{likeUser.code}),'%')
+            </if>
+            <if test="likeUser.userName!=null and likeUser.userName != ''">
+                and userName like concat(concat('%',#{likeUser.userName}),'%')
+            </if>
+            <if test="likeUser.password!=null and likeUser.password != ''">
+                and password like concat(concat('%',#{likeUser.password}),'%')
+            </if>
+            <if test="likeUser.telNo!=null and likeUser.telNo != ''">
+                and telNo like concat(concat('%',#{likeUser.telNo}),'%')
+            </if>
+            <if test="likeUser.remark!=null and likeUser.remark != ''">
+                and remark like concat(concat('%',#{likeUser.remark}),'%')
+            </if>
+            <if test="likeUser.status!=null">
+                and status = #{likeUser.status}
+            </if>
+            <if test="likeUser.strCreateTime!=null and likeUser.strCreateTime != ''">
+                and date_format(createTime, '%Y-%m-%d %H:%i:%s') like concat(concat('%',#{likeUser.strCreateTime}),'%')
+            </if>
+            <if test="likeUser.strModifyTime!=null  and likeUser.strModifyTime != ''">
+                and date_format(modifyTime, '%Y-%m-%d %H:%i:%s') like concat(concat('%',#{likeUser.strModifyTime}),'%')
+            </if>
+        </where>
+    </select>
+
+    <select id="findUser" resultMap="BaseResultMap">
+        select
+        id, code, userName, password, telNo, remark, status,createTime,modifyTime,
+        date_format(createTime, '%Y-%m-%d %H:%i:%s') strCreateTime,
+        date_format(modifyTime, '%Y-%m-%d %H:%i:%s') strModifyTime
+        from SYS_USER
+        <where>
+            <if test="likeUser.code!=null and likeUser.code != ''">
+                and code like concat(concat('%',#{likeUser.code}),'%')
+            </if>
+            <if test="likeUser.userName!=null and likeUser.userName != ''">
+                and userName like concat(concat('%',#{likeUser.userName}),'%')
+            </if>
+            <if test="likeUser.password!=null and likeUser.password != ''">
+                and password like concat(concat('%',#{likeUser.password}),'%')
+            </if>
+            <if test="likeUser.telNo!=null and likeUser.telNo != ''">
+                and telNo like concat(concat('%',#{likeUser.telNo}),'%')
+            </if>
+            <if test="likeUser.remark!=null and likeUser.remark != ''">
+                and remark like concat(concat('%',#{likeUser.remark}),'%')
+            </if>
+            <if test="likeUser.status!=null">
+                and status = #{likeUser.status}
+            </if>
+            <if test="likeUser.strCreateTime!=null  and likeUser.strCreateTime != ''">
+                and date_format(createTime, '%Y-%m-%d %H:%i:%s') like concat(concat('%',#{likeUser.strCreateTime}),'%')
+            </if>
+            <if test="likeUser.strModifyTime!=null  and likeUser.strModifyTime != ''">
+                and date_format(modifyTime, '%Y-%m-%d %H:%i:%s') like concat(concat('%',#{likeUser.strModifyTime}),'%')
+            </if>
+        </where>
+        limit #{rowNum},#{nRows}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
     delete from SYS_USER
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <insert id="insert" parameterType="com.power.inventory.inventory.modules.user.model.User">
-    insert into SYS_USER (id, username, password
-      )
-    values (#{id,jdbcType=BIGINT}, #{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}
-      )
-  </insert>
-  <insert id="insertSelective" parameterType="com.power.inventory.inventory.modules.user.model.User">
-    insert into SYS_USER
-    <trim prefix="(" suffix=")" suffixOverrides=",">
-      <if test="id != null">
-        id,
-      </if>
-      <if test="username != null">
-        username,
-      </if>
-      <if test="password != null">
-        password,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides=",">
-      <if test="id != null">
-        #{id,jdbcType=BIGINT},
-      </if>
-      <if test="username != null">
-        #{username,jdbcType=VARCHAR},
-      </if>
-      <if test="password != null">
+
+    <insert id="insert" parameterType="com.power.inventory.inventory.modules.user.model.User">
+        insert into SYS_USER (
+        <include refid="Base_Column_List"/>
+        )
+        values (#{id,jdbcType=BIGINT},
+        #{code,jdbcType=VARCHAR},
+        #{userName,jdbcType=VARCHAR},
         #{password,jdbcType=VARCHAR},
-      </if>
-    </trim>
-  </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.power.inventory.inventory.modules.user.model.User">
-    update SYS_USER
-    <set>
-      <if test="username != null">
-        username = #{username,jdbcType=VARCHAR},
-      </if>
-      <if test="password != null">
-        password = #{password,jdbcType=VARCHAR},
-      </if>
-    </set>
-    where id = #{id,jdbcType=BIGINT}
-  </update>
-  <update id="updateByPrimaryKey" parameterType="com.power.inventory.inventory.modules.user.model.User">
-    update SYS_USER
-    set username = #{username,jdbcType=VARCHAR},
-      password = #{password,jdbcType=VARCHAR}
-    where id = #{id,jdbcType=BIGINT}
-  </update>
+        #{telNo,jdbcType=VARCHAR},
+        #{remark,jdbcType=VARCHAR},
+        #{status,jdbcType=TINYINT},
+        NOW(),
+        NOW()
+
+        )
+    </insert>
+
+    <update id="editUser" parameterType="com.power.inventory.inventory.modules.user.model.User">
+        update SYS_USER
+        set
+        <if test="userName!=null and userName != ''">
+            userName = #{userName,jdbcType=VARCHAR},
+        </if>
+        <if test="password!=null and password != ''">
+            password = #{password,jdbcType=VARCHAR},
+        </if>
+
+        <if test="telNo!=null and telNo != ''">
+            telNo = #{telNo,jdbcType=VARCHAR},
+        </if>
+        <if test="remark!=null and remark != ''">
+            remark = #{remark,jdbcType=VARCHAR},
+        </if>
+        <if test="status!=null">
+            status = #{status,jdbcType=TINYINT},
+        </if>
+
+
+        modifyTime = Now()
+
+        where code = #{code,jdbcType=VARCHAR}
+    </update>
+
+    <update id="updateUserStatus">
+        update SYS_USER
+        set
+        <if test="status!=null">
+            status = #{status,jdbcType=TINYINT},
+        </if>
+        modifyTime = Now()
+        where  code = #{code,jdbcType=VARCHAR}
+    </update>
+
+    <delete id="delUserList">
+    delete from SYS_USER
+    where code in
+        <foreach collection="codeList" index="index" item="code" open="(" separator="," close=")">
+            #{code}
+        </foreach>
+  </delete>
 </mapper>
